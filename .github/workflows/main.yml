@@ -32,9 +32,12 @@ jobs:
             --identifier_col student_id \
             --output_path preprocessing/python-learning-performance_preprocessing.csv
 
-      - name: Upload Processed Dataset
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-learning-performance_preprocessing
-          path: preprocessing/python-learning-performance_preprocessing.csv
+      - name: Commit processed dataset to repo
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+      
+          git add preprocessing/python-learning-performance_preprocessing.csv
+          git commit -m "chore: update preprocessed dataset" || echo "No changes to commit"
+          git push
   
