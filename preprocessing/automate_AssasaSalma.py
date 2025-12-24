@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import os
+import argparse
 from sklearn.preprocessing import RobustScaler
 
 def preprocess_data(data, target_col, identifier_col, save_path):
@@ -19,7 +21,7 @@ def preprocess_data(data, target_col, identifier_col, save_path):
 
     # identifikasi fitur numerikal dan kategorikal
     numeric_features = X.select_dtypes(include=['float64', 'int64']).columns.tolist()
-    categorical_features = X.select_dtypes(include=['object']).columns.tolist()
+    categorical_features = X.select_dtypes(include=['object', 'category']).columns.tolist()
 
     # mengatasi missing value fitur kategorikal
     for col in categorical_features:
@@ -32,8 +34,8 @@ def preprocess_data(data, target_col, identifier_col, save_path):
             X[col] = X[col].fillna(X[col].median())
 
     # scaling fitur numerik dengan RobustScaler
-    scaler = RobustScaler()
     if numeric_features:
+        scaler = RobustScaler()
         X[numeric_features] = scaler.fit_transform(X[numeric_features])
 
     # encode fitur kategorikal dengan one-hot encoding
@@ -47,3 +49,29 @@ def preprocess_data(data, target_col, identifier_col, save_path):
     preprocessed_df.to_csv(save_path, index=False)
 
     return preprocessed_df
+
+def main():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--input_path", required=True)
+    parser.add_argument("--target_col", required=True)
+    parser.add_argument("--identifier_col", nargs="*", default=None)
+    parser.add_argument("--output_path", required=True)
+    
+    args = parser.parse_args()
+
+    # membaca data
+    df = pd.read_csv(args.input_path)
+
+    os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
+
+    # preprocessing data
+    preprocessed_df = preprocess_data(
+        data=df,
+        target_col=args.target_col,
+        identifier_col=args.identifier_col,
+        save_path=args.output_path
+    )
+
+if __name__ == "__main__":
+    main()
